@@ -1,4 +1,4 @@
-OBJS = main.cpp graphics.cpp
+OBJS = main.cpp game.cpp
 
 OBJ_NAME = balloonacy
 

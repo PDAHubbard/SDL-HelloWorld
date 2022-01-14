@@ -1,8 +1,13 @@
 #include <stdlib.h>
 #include <time.h>
-#include "graphics.h"
-//#include <game/world.h>
-//#include <input/inputs.h>
+//#include "graphics.h"
+#include "game.h"
+//#include "world.h"
+//#include "inputs.h"
+
+const int FPS=60;
+const float MS_PER_FRAME = 1000.0f / FPS;
+Uint32 previous, current, lag, elapsed;
 
 //int main( int argc, char** argv )
 int main( )
@@ -10,26 +15,44 @@ int main( )
 	//Initialise random seed
 	srand( time( NULL ) );
 
-	Graphics graphics;
+    if( _Game::Instance()->init( "Balloonacy", 
+            SDL_WINDOWPOS_UNDEFINED,  
+            SDL_WINDOWPOS_UNDEFINED,
+            640,
+            480,
+            SDL_WINDOW_SHOWN ) )
+    {
+        previous = SDL_GetTicks();
+        lag = 0;
+	    while( _Game::Instance()->isRunning() )
+	    {
+            current = SDL_GetTicks();
+            elapsed = current - previous;
+            previous = current;
+            lag += elapsed;
 
-    SDL_Event e;
+            printf("Lag: %u \n", lag);
 
-	bool loop = true;
+            //process inputs
+            _Game::Instance()->handleEvents(); 
+            //update
+            while( lag >= MS_PER_FRAME )
+            {
+                _Game::Instance()->update();
+                lag -= MS_PER_FRAME;
+            }
+            //render
+            _Game::Instance()->render();
 
-	while( loop )
-	{
-        if( SDL_PollEvent( &e ) != 0 ) 
-        {   
-            //User requests quit
-            if( e.type == SDL_QUIT )
-                loop = false;
-        }
+	    }
+    }
+    else
+    {
+        printf( "Game init failed: %s\n", SDL_GetError() );
+        return -1;
+    }
 
-		graphics.clear_screen();
-//		graphics.render_entities( NULL, NULL );
-//		graphics.render_overlay( NULL );
-		graphics.present_renderer( );
-	}
+    _Game::Instance()->clean();
 
 	return 0;
 }
